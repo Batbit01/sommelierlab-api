@@ -1,4 +1,3 @@
-
 require('dotenv').config();
 const express = require('express');
 const axios = require('axios');
@@ -13,8 +12,20 @@ const VINOS_TABLE = "Vinos_Completa";
 const BODEGAS_TABLE = "Bodegas_Completa_Con_ID";
 const DEBUG = process.env.DEBUG === "true";
 
+// 🧪 Endpoint de depuración
+app.get('/debug', (req, res) => {
+  res.json({
+    DEBUG,
+    AIRTABLE_API_KEY: AIRTABLE_API_KEY ? "✅ definida" : "❌ NO definida",
+    BASE_ID,
+    VINOS_TABLE,
+    BODEGAS_TABLE
+  });
+});
+
 app.get('/api/vino/:id', async (req, res) => {
   const vinoId = req.params.id;
+
   try {
     const vinoResp = await axios.get(`https://api.airtable.com/v0/${BASE_ID}/${VINOS_TABLE}`, {
       headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` },
