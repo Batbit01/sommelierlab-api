@@ -11,7 +11,7 @@ app.use(cors());
 const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY;
 const BASE_ID = process.env.AIRTABLE_BASE_ID;
 
-// ⚠️ Usamos los IDs de tabla reales, más seguros
+// ✅ Usamos los IDs reales de las tablas
 const VINOS_TABLE = "tblEa1iPklRWUtBs";
 const BODEGAS_TABLE = "tbltRCcG3vT6lVnAY";
 
@@ -33,7 +33,6 @@ app.get('/api/vino/:id', async (req, res) => {
   const vinoId = req.params.id;
 
   try {
-    // Obtener vino
     const vinoResp = await axios.get(`https://api.airtable.com/v0/${BASE_ID}/${VINOS_TABLE}`, {
       headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` },
       params: {
@@ -47,7 +46,6 @@ app.get('/api/vino/:id', async (req, res) => {
     const vino = vinoRecord.fields;
     const bodegaId = vino["ID Bodega"];
 
-    // Obtener bodega
     const bodegaResp = await axios.get(`https://api.airtable.com/v0/${BASE_ID}/${BODEGAS_TABLE}`, {
       headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` },
       params: {
@@ -58,7 +56,6 @@ app.get('/api/vino/:id', async (req, res) => {
     const bodegaRecord = bodegaResp.data.records[0];
     const bodega = bodegaRecord ? bodegaRecord.fields : {};
 
-    // Respuesta combinada
     res.json({
       id: vino["ID Vino"],
       nombre: vino["Nombre del vino"],
@@ -89,7 +86,6 @@ app.get('/api/vino/:id', async (req, res) => {
   }
 });
 
-// 🚀 Iniciar servidor
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Servidor escuchando en http://localhost:${PORT}`));
 
