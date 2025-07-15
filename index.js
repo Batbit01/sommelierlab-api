@@ -1,3 +1,7 @@
+from pathlib import Path
+
+# Código corregido con los nuevos nombres de tablas
+corrected_code = """
 require('dotenv').config();
 
 const express = require('express');
@@ -10,8 +14,8 @@ app.use(cors());
 // Variables de entorno
 const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY;
 const BASE_ID = process.env.AIRTABLE_BASE_ID;
-const VINOS_TABLE = "Vinos_Completa";
-const BODEGAS_TABLE = "Bodegas_Completa_Con_ID";
+const VINOS_TABLE = "Vinos Table";
+const BODEGAS_TABLE = "2-Bodegas Table";
 const DEBUG = process.env.DEBUG === "true";
 
 // 🧪 Endpoint de depuración
@@ -89,3 +93,10 @@ app.get('/api/vino/:id', async (req, res) => {
 // 🚀 Iniciar servidor
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Servidor escuchando en http://localhost:${PORT}`));
+"""
+
+# Guardar como archivo
+output_path = Path("/mnt/data/index_corrigido.js")
+output_path.write_text(corrected_code)
+
+output_path.name
