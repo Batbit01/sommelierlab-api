@@ -10,8 +10,11 @@ app.use(cors());
 // Variables de entorno
 const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY;
 const BASE_ID = process.env.AIRTABLE_BASE_ID;
-const VINOS_TABLE = encodeURIComponent("Vinos Table");
-const BODEGAS_TABLE = encodeURIComponent("2-Bodegas Table");
+
+// ⚠️ Usamos los IDs de tabla reales, más seguros
+const VINOS_TABLE = "tblEa1iPklRWUtBs";
+const BODEGAS_TABLE = "tbltRCcG3vT6lVnAY";
+
 const DEBUG = process.env.DEBUG === "true";
 
 // 🧪 Endpoint de depuración
@@ -89,3 +92,4 @@ app.get('/api/vino/:id', async (req, res) => {
 // 🚀 Iniciar servidor
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Servidor escuchando en http://localhost:${PORT}`));
+
