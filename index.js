@@ -28,6 +28,30 @@ app.get('/api/debug', (req, res) => {
   });
 });
 
+// 🧪 NUEVO: Test directo a la tabla de vinos sin filtro
+app.get('/api/test-vinos', async (req, res) => {
+  try {
+    const vinosResp = await axios.get(`https://api.airtable.com/v0/${BASE_ID}/${VINOS_TABLE}`, {
+      headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` },
+      params: { maxRecords: 5 }
+    });
+
+    const resultados = vinosResp.data.records.map(r => ({
+      id: r.id,
+      campos: r.fields
+    }));
+
+    res.json({ encontrados: resultados.length, registros: resultados });
+
+  } catch (error) {
+    console.error("❌ Error al leer vinos:", error.response?.data || error.message);
+    res.status(500).json({
+      error: "No se pudo acceder a Airtable",
+      detalle: error.response?.data || error.message
+    });
+  }
+});
+
 // 🔍 Endpoint para obtener vino + bodega
 app.get('/api/vino/:id', async (req, res) => {
   const vinoId = req.params.id;
