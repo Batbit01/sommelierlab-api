@@ -12,8 +12,8 @@ const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY;
 const BASE_ID = process.env.AIRTABLE_BASE_ID;
 
 // ✅ Usamos los IDs reales de las tablas
-const VINOS_TABLE = "tblEa1iPk1PNVURtB"; // ✅ CORREGIDO
-const BODEGAS_TABLE = "tbltRCcG3vT6lVnAY";
+const VINOS_TABLE = "tblEal1Pk1PNVUrtB"; // ✅ CORREGIDO
+const BODEGAS_TABLE = "tblpszSrXfrpvFEmu";
 
 const DEBUG = process.env.DEBUG === "true";
 
