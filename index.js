@@ -12,7 +12,7 @@ const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY;
 const BASE_ID = process.env.AIRTABLE_BASE_ID;
 
 // ✅ Usamos los IDs reales de las tablas
-const VINOS_TABLE = "tblEa1iPklRWUtBs";
+const VINOS_TABLE = "tblEa1iPk1PNVURtB"; // ✅ CORREGIDO
 const BODEGAS_TABLE = "tbltRCcG3vT6lVnAY";
 
 const DEBUG = process.env.DEBUG === "true";
@@ -116,3 +116,4 @@ app.get('/api/vino/:id', async (req, res) => {
 // 🚀 Iniciar servidor
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Servidor escuchando en http://localhost:${PORT}`));
+
