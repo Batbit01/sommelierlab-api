@@ -112,6 +112,41 @@ app.get('/api/vino/:id', async (req, res) => {
     }
   }
 });
+// 🧾 Endpoint específico para QR1 Legal
+app.get('/api/vino-legal/:id', async (req, res) => {
+  const vinoId = req.params.id;
+
+  try {
+    // Buscar el vino por ID
+    const vinoResp = await axios.get(`https://api.airtable.com/v0/${BASE_ID}/${VINOS_TABLE}`, {
+      headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` },
+      params: {
+        filterByFormula: `{ID Vino} = "${vinoId}"`
+      }
+    });
+
+    const vinoRecord = vinoResp.data.records[0];
+    if (!vinoRecord) return res.status(404).json({ error: "Vino no encontrado" });
+
+    const vino = vinoRecord.fields;
+
+    // ✅ Solo los campos legales
+    res.json({
+      id: vino["ID Vino"],
+      nombre: vino["Nombre del vino"],
+      ingredientes: vino["Ingredientes"],
+      valor_energetico_kcal: vino["Valor energético (kcal/100ml)"],
+      valor_energetico_kj: vino["Valor energético (kJ/100ml)"],
+      alergenos: vino["Alérgenos"],
+      idioma: vino["Idioma legal"] || "es",
+      url_qr2: vino["QR2 (Sensitive)"]
+    });
+
+  } catch (err) {
+    console.error("❌ Error en /api/vino-legal:", err.message || err);
+    res.status(500).json({ error: "Error al obtener los datos legales del vino" });
+  }
+});
 
 // 🚀 Iniciar servidor
 const PORT = process.env.PORT || 3000;
