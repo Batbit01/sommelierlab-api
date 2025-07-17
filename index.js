@@ -131,16 +131,25 @@ app.get('/api/vino-legal/:id', async (req, res) => {
     const vino = vinoRecord.fields;
 
     // ✅ Solo los campos legales
-    res.json({
-      id: vino["ID Vino"],
-      nombre: vino["Nombre del vino"],
-      ingredientes: vino["Ingredientes"],
-      valor_energetico_kcal: vino["Valor energético (kcal/100ml)"],
-      valor_energetico_kj: vino["Valor energético (kJ/100ml)"],
-      alergenos: vino["Alérgenos"],
-      idioma: vino["Idioma legal"] || "es",
-      url_qr2: vino["QR2 (Sensitive)"]
-    });
+  res.json({
+  id: vino["ID Vino"],
+  nombre: vino["Nombre del vino"],
+  ingredientes: vino["Ingredientes"],
+  valor_energetico_kcal: vino["Valor energético (kcal/100ml)"],
+  valor_energetico_kj: vino["Valor energético (kJ/100ml)"],
+  grasas_totales: vino["Grasas totales (g)"],
+  grasas_saturadas: vino["Grasas saturadas (g)"],
+  hidratos: vino["Hidratos de carbono (g)"],
+  azucares: vino["Azúcares (g)"],
+  proteinas: vino["Proteínas (g)"],
+  sal: vino["Sal (g)"],
+  graduacion_alcoholica: vino["Graduación alcohólica (% vol.)"],
+  volumen_ml: vino["Volumen (ml)"],
+  alergenos: vino["Alérgenos"],
+  idioma: vino["Idioma legal"] || "es",
+  url_qr2: vino["QR2 (Sensitive)"]
+});
+
 
   } catch (err) {
     console.error("❌ Error en /api/vino-legal:", err.message || err);
