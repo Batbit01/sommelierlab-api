@@ -134,7 +134,7 @@ app.get('/api/vino-legal/:id', async (req, res) => {
   res.json({
   id: vino["ID Vino"],
   nombre: vino["Nombre del vino"],
-  imagen: vino["Imagen"],
+  Imagen: vino["Imagen"],
   ingredientes: vino["Ingredientes"],
   valor_energetico_kcal: vino["Valor energético (kcal/100ml)"],
   valor_energetico_kj: vino["Valor energético (kJ/100ml)"],
