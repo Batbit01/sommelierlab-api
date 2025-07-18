@@ -144,7 +144,7 @@ res.json({
   azucares: vino["Azúcares (g)"],
   proteinas: vino["Proteínas (g)"],
   sal: vino["Sal (g)"],
-  graduacion_alcoholica: vino["Graduación alcohólica (% vol.)"],
+  graduacion_alcoholica: vino["Graduación alcohólica"],
   volumen_ml: vino["Volumen de botella"], // ✅ CORREGIDO A ESTE CAMPO
   alergenos: vino["Alérgenos"],
   idioma: vino["Idioma legal"] || "es",
