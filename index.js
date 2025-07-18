@@ -130,8 +130,8 @@ app.get('/api/vino-legal/:id', async (req, res) => {
 
     const vino = vinoRecord.fields;
 
-    // ✅ Solo los campos legales
-  res.json({
+// ✅ Solo los campos legales
+res.json({
   id: vino["ID Vino"],
   nombre: vino["Nombre del vino"],
   Imagen: vino["Imagen"],
@@ -145,7 +145,7 @@ app.get('/api/vino-legal/:id', async (req, res) => {
   proteinas: vino["Proteínas (g)"],
   sal: vino["Sal (g)"],
   graduacion_alcoholica: vino["Graduación alcohólica (% vol.)"],
-  volumen_ml: vino["Volumen (ml)"],
+  volumen_ml: vino["Volumen de botella"], // ✅ CORREGIDO A ESTE CAMPO
   alergenos: vino["Alérgenos"],
   idioma: vino["Idioma legal"] || "es",
   url_qr2: vino["QR2 (Sensitive)"]
