@@ -162,11 +162,10 @@ app.get('/api/organoleptica/:vinoId', async (req, res) => {
   const vinoId = req.params.vinoId;
 
   try {
-    const organoResp = await axios.get(https://api.airtable.com/v0/${BASE_ID}/${ORGANOLEPTICA_TABLE}, {
-      headers: { Authorization: Bearer ${AIRTABLE_API_KEY} },
+    const organoResp = await axios.get(`https://api.airtable.com/v0/${BASE_ID}/${ORGANOLEPTICA_TABLE}`, {
+      headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` },
       params: {
-        // Versión robusta que también funciona con linked records
-        filterByFormula: SEARCH("${vinoId}", ARRAYJOIN({ID Vino}))
+        filterByFormula: `SEARCH("${vinoId}", ARRAYJOIN({ID Vino}))`
       }
     });
 
@@ -176,13 +175,22 @@ app.get('/api/organoleptica/:vinoId', async (req, res) => {
     const o = record.fields;
 
     res.json({
-      cuerpo: o.Cuerpo || 0,
-      acidez: o.Acidez || 0,
-      dulzor: o.Dulzor || 0,
-      taninos: o.Taninos || 0,
-      fruta: o.Fruta || 0,
-      frescura: o.Frescura || 0,
-      mineralidad: o.Mineralidad || 0
+      gusto: {
+        cuerpo: o.Cuerpo || 0,
+        acidez: o.Acidez || 0,
+        dulzor: o.Dulzor || 0,
+        taninos: o.Taninos || 0,
+        fruta: o.Fruta || 0,
+        frescura: o.Frescura || 0,
+        mineralidad: o.Mineralidad || 0
+      },
+      aroma: {
+        frutal: o.Frutal || 0,
+        floral: o.Floral || 0,
+        especiado: o.Especiado || 0,
+        tostado: o.Tostado || 0,
+        herbaceo: o.Herbáceo || o.Herbaceo || 0
+      }
     });
 
   } catch (err) {
@@ -190,6 +198,7 @@ app.get('/api/organoleptica/:vinoId', async (req, res) => {
     res.status(500).json({ error: "Error al obtener las propiedades organolépticas" });
   }
 });
+
 
 // 🚀 Iniciar servidor
 const PORT = process.env.PORT || 3000;
