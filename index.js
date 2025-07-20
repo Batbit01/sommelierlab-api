@@ -1,188 +1,98 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>SommelierLab - Ficha del Vino</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    body {
-      font-family: sans-serif;
-      padding: 2rem;
-      background-color: #fefefe;
-      color: #222;
-      max-width: 600px;
-      margin: auto;
-    }
-    .vino-ficha img {
-      width: 100%;
-      max-height: 300px;
-      object-fit: contain;
-      border-radius: 1rem;
-    }
-    .vino-dato {
-      margin-bottom: 1rem;
-    }
-    .vino-dato strong {
-      display: inline-block;
-      width: 100px;
-    }
-    #respuesta {
-      margin-top: 2rem;
-      font-style: italic;
-      background: #f1f1f1;
-      padding: 1rem;
-      border-radius: 0.5rem;
-    }
-    #hablar {
-      display: inline-block;
-      margin-top: 2rem;
-      padding: 0.75rem 1.5rem;
-      background: #800000;
-      color: white;
-      border: none;
-      border-radius: 1rem;
-      cursor: pointer;
-    }
-    .redes a {
-      margin-right: 1rem;
-      text-decoration: none;
-      color: #800000;
-    }
-    #radar-container {
-      margin-top: 3rem;
-    }
-    .switch-buttons {
-      margin-bottom: 1rem;
-    }
-    .switch-buttons button {
-      margin-right: 1rem;
-      padding: 0.5rem 1rem;
-      background: #eee;
-      border: 1px solid #ccc;
-      border-radius: 0.5rem;
-      cursor: pointer;
-    }
-  </style>
-</head>
+require('dotenv').config();
+const express = require('express');
+const axios = require('axios');
+const cors = require('cors');
 
-<body>
+const app = express();
+app.use(cors());
 
-  <h1>Ficha del Vino</h1>
+const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY;
+const BASE_ID = process.env.AIRTABLE_BASE_ID;
+const VINOS_TABLE = "tblEal1Pk1PNVUrtB";
+const BODEGAS_TABLE = "tblpszSrXfrpvFEmu";
+const ORGANOLEPTICA_TABLE = "tblXrhuVVKZZ0pfJB";
+const DEBUG = process.env.DEBUG === "true";
 
-  <div class="vino-ficha">
-    <img id="vinoImagen" src="" alt="Imagen del vino" />
-    <div class="vino-dato"><strong>Nombre:</strong> <span id="vinoNombre">-</span></div>
-    <div class="vino-dato"><strong>Tipo:</strong> <span id="vinoTipo">-</span></div>
-    <div class="vino-dato"><strong>Origen:</strong> <span id="vinoOrigen">-</span></div>
-    <div class="vino-dato"><strong>Variedad:</strong> <span id="vinoUva">-</span></div>
-    <div class="vino-dato"><strong>Bodega:</strong> <span id="bodegaNombre">-</span></div>
-    <div class="vino-dato redes" id="bodega-redes"></div>
-  </div>
+// Debug
+app.get('/api/debug', (req, res) => {
+  res.json({
+    DEBUG,
+    AIRTABLE_API_KEY: AIRTABLE_API_KEY ? "✅ definida" : "❌ NO definida",
+    BASE_ID,
+    VINOS_TABLE,
+    BODEGAS_TABLE
+  });
+});
 
-  <div id="respuesta">Cargando descripción del vino...</div>
+// Test sin filtro
+app.get('/api/test-vinos', async (req, res) => {
+  try {
+    const vinosResp = await axios.get(`https://api.airtable.com/v0/${BASE_ID}/${VINOS_TABLE}`, {
+      headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` },
+      params: { maxRecords: 5 }
+    });
+    const resultados = vinosResp.data.records.map(r => ({
+      id: r.id,
+      campos: r.fields
+    }));
+    res.json({ encontrados: resultados.length, registros: resultados });
+  } catch (error) {
+    console.error("❌ Error al leer vinos:", error.response?.data || error.message);
+    res.status(500).json({ error: "No se pudo acceder a Airtable", detalle: error.response?.data || error.message });
+  }
+});
 
-  <button id="hablar">Hablar con el sommelier</button>
+// Vino + bodega
+app.get('/api/vino/:id', async (req, res) => {
+  const vinoId = req.params.id;
 
-  <div id="radar-container">
-    <h3>Perfil organoléptico</h3>
-    <div class="switch-buttons">
-      <button onclick="renderRadar('gustativo')">Gustativo</button>
-      <button onclick="renderRadar('aromatico')">Aromático</button>
-    </div>
-    <canvas id="radarChart" width="400" height="400"></canvas>
-  </div>
-
-  <script>
-    let radarChart;
-    let organo = {};
-
-    function renderRadar(tipo) {
-      if (!organo || Object.keys(organo).length === 0) {
-        console.warn("⚠️ Datos organolépticos no disponibles.");
-        return;
+  try {
+    const vinoResp = await axios.get(`https://api.airtable.com/v0/${BASE_ID}/${VINOS_TABLE}`, {
+      headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` },
+      params: {
+        filterByFormula: `{ID Vino} = '${vinoId}'`
       }
+    });
 
-      const ctx = document.getElementById('radarChart').getContext('2d');
-      let labels = [];
-      let data = [];
+    const vinoRecord = vinoResp.data.records[0];
+    if (!vinoRecord) return res.status(404).json({ error: "Vino no encontrado" });
 
-      if (tipo === 'gustativo') {
-        labels = ["Cuerpo", "Acidez", "Dulzor", "Taninos", "Frescura", "Mineralidad"];
-        data = [
-          organo["Cuerpo"] || 0,
-          organo["Acidez"] || 0,
-          organo["Dulzor"] || 0,
-          organo["Taninos"] || 0,
-          organo["Frescura"] || 0,
-          organo["Mineralidad"] || 0
-        ];
-      } else {
-        labels = ["Frutal", "Floral", "Especiado", "Tostado", "Herbáceo"];
-        data = [
-          organo["Frutal"] || 0,
-          organo["Floral"] || 0,
-          organo["Especiado"] || 0,
-          organo["Tostado"] || 0,
-          organo["Herbáceo"] || 0
-        ];
+    const vino = vinoRecord.fields;
+    const bodegaId = vino["ID Bodega"];
+
+    const bodegaResp = await axios.get(`https://api.airtable.com/v0/${BASE_ID}/${BODEGAS_TABLE}`, {
+      headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` },
+      params: {
+        filterByFormula: `{ID Bodega} = '${bodegaId}'`
       }
+    });
 
-      if (radarChart) radarChart.destroy();
+    const bodegaRecord = bodegaResp.data.records[0];
+    const bodega = bodegaRecord ? bodegaRecord.fields : {};
 
-      radarChart = new Chart(ctx, {
-        type: 'radar',
-        data: {
-          labels,
-          datasets: [{
-            label: `Perfil ${tipo}`,
-            data,
-            fill: true,
-            backgroundColor: "rgba(128,0,0,0.2)",
-            borderColor: "rgba(128,0,0,1)",
-            pointBackgroundColor: "rgba(128,0,0,1)"
-          }]
-        },
-        options: {
-          responsive: true,
-          scales: {
-            r: {
-              min: 0,
-              max: 10,
-              ticks: {
-                stepSize: 2
-              }
-            }
-          }
-        }
-      });
+    res.json({
+      id: vino["ID Vino"],
+      nombre: vino["Nombre del vino"],
+      tipo: vino["Tipo"],
+      variedad: vino["Variedad de uva"],
+      origen: vino["Origen/DO"],
+      imagen: vino["Imagen"],
+      bodega: {
+        nombre: bodega["Bodega"],
+        web: bodega["Web URL"],
+        facebook: bodega["Facebook URL"],
+        instagram: bodega["Instagram URL"],
+        twitter: bodega["Twitter/X URL"]
+      }
+    });
+
+  } catch (err) {
+    if (DEBUG) {
+      console.error("🔴 ERROR DETECTADO en /api/vino/:id:", err.response?.data || err.message || err);
     }
+    res.status(500).json({ error: "Error al consultar vino y bodega" });
+  }
+});
 
-    document.addEventListener("DOMContentLoaded", async () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      const vinoId = urlParams.get("vino_id");
-
-      if (!vinoId) {
-        document.getElementById("respuesta").innerText = "No se especificó ningún vino.";
-        return;
-      }
-
-      const apiBase = "https://sommelierlab-api-production.up.railway.app/api/vino";
-      const organoBase = "https://sommelierlab-api-production.up.railway.app/api/organoleptica";
-      const webhookBase = "https://n8n-production-cb18.up.railway.app/webhook/consultar-vino";
-
-      try {
-        const fichaResponse = await fetch(`${apiBase}/${vinoId}`);
-        const fichaData = await fichaResponse.json();
-
-        document.getElementById("vinoImagen").src =
-          (fichaData.imagen && Array.isArray(fichaData.imagen) && fichaData.imagen[0]?.url)
-          ? fichaData.imagen[0].url : "";
-        document.getElementById("vinoNombre").innerText = fichaData.nombre;
-        document.getElementById("vinoTipo").innerText = fichaData.tipo;
-        document.getElementById("vinoUva").innerText = fichaData.variedad;
-        document.getElementById("vinoOrigen").innerText = fichaData.origen;
-        document.getElementById("bodegaNombre").innerText = fichaData.bodega.nombre;
-
-        const redesHtml = [];
-        if (fichaData.bodega
+// Vino Legal
+app.get('/api/vino-legal/:id', async (
