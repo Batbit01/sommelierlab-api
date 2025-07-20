@@ -1,5 +1,4 @@
 require('dotenv').config();
-
 const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
@@ -7,17 +6,14 @@ const cors = require('cors');
 const app = express();
 app.use(cors());
 
-// 🔐 Variables de entorno
 const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY;
 const BASE_ID = process.env.AIRTABLE_BASE_ID;
-
-// ✅ Usamos los IDs reales de las tablas
-const VINOS_TABLE = "tblEal1Pk1PNVUrtB"; // ✅ CORREGIDO
+const VINOS_TABLE = "tblEal1Pk1PNVUrtB";
 const BODEGAS_TABLE = "tblpszSrXfrpvFEmu";
-
+const ORGANOLEPTICA_TABLE = "tblXrhuVVKZZ0pfJB";
 const DEBUG = process.env.DEBUG === "true";
 
-// 🧪 Endpoint de depuración
+// Debug
 app.get('/api/debug', (req, res) => {
   res.json({
     DEBUG,
@@ -28,11 +24,11 @@ app.get('/api/debug', (req, res) => {
   });
 });
 
-// 🧪 NUEVO: Test directo a la tabla de vinos sin filtro
+// Test sin filtro
 app.get('/api/test-vinos', async (req, res) => {
   try {
-    const vinosResp = await axios.get(https://api.airtable.com/v0/${BASE_ID}/${VINOS_TABLE}, {
-      headers: { Authorization: Bearer ${AIRTABLE_API_KEY} },
+    const vinosResp = await axios.get(`https://api.airtable.com/v0/${BASE_ID}/${VINOS_TABLE}`, {
+      headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` },
       params: { maxRecords: 5 }
     });
 
@@ -42,26 +38,21 @@ app.get('/api/test-vinos', async (req, res) => {
     }));
 
     res.json({ encontrados: resultados.length, registros: resultados });
-
   } catch (error) {
     console.error("❌ Error al leer vinos:", error.response?.data || error.message);
-    res.status(500).json({
-      error: "No se pudo acceder a Airtable",
-      detalle: error.response?.data || error.message
-    });
+    res.status(500).json({ error: "No se pudo acceder a Airtable", detalle: error.response?.data || error.message });
   }
 });
 
-// 🔍 Endpoint para obtener vino + bodega
+// Vino + bodega
 app.get('/api/vino/:id', async (req, res) => {
   const vinoId = req.params.id;
 
   try {
-    // ✅ Consultar vino por campo visible: "ID Vino"
-    const vinoResp = await axios.get(https://api.airtable.com/v0/${BASE_ID}/${VINOS_TABLE}, {
-      headers: { Authorization: Bearer ${AIRTABLE_API_KEY} },
+    const vinoResp = await axios.get(`https://api.airtable.com/v0/${BASE_ID}/${VINOS_TABLE}`, {
+      headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` },
       params: {
-        filterByFormula: {ID Vino} = "${vinoId}"
+        filterByFormula: `{ID Vino} = '${vinoId}'`
       }
     });
 
@@ -70,21 +61,17 @@ app.get('/api/vino/:id', async (req, res) => {
 
     const vino = vinoRecord.fields;
     const bodegaId = vino["ID Bodega"];
-    const ORGANOLEPTICA_TABLE = "tblXrhuVVKZZ0pfJB"; // 
 
-
-    // ✅ Consultar bodega (por nombre visible del campo)
-    const bodegaResp = await axios.get(https://api.airtable.com/v0/${BASE_ID}/${BODEGAS_TABLE}, {
-      headers: { Authorization: Bearer ${AIRTABLE_API_KEY} },
+    const bodegaResp = await axios.get(`https://api.airtable.com/v0/${BASE_ID}/${BODEGAS_TABLE}`, {
+      headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` },
       params: {
-        filterByFormula: {ID Bodega} = "${bodegaId}"
+        filterByFormula: `{ID Bodega} = '${bodegaId}'`
       }
     });
 
     const bodegaRecord = bodegaResp.data.records[0];
     const bodega = bodegaRecord ? bodegaRecord.fields : {};
 
-    // 🧩 Respuesta combinada
     res.json({
       id: vino["ID Vino"],
       nombre: vino["Nombre del vino"],
@@ -100,31 +87,25 @@ app.get('/api/vino/:id', async (req, res) => {
         twitter: bodega["Twitter/X URL"]
       }
     });
-
   } catch (err) {
     if (DEBUG) {
       console.error("🔴 ERROR DETECTADO:");
       console.error(err.response?.data || err.message || err);
-      res.status(500).json({
-        error: "Error al consultar Airtable",
-        detalle: err.response?.data || err.message || err
-      });
+      res.status(500).json({ error: "Error al consultar Airtable", detalle: err.response?.data || err.message });
     } else {
       res.status(500).json({ error: "Error al consultar Airtable" });
     }
   }
 });
-// ✅ CORRECTO: Defínelo arriba junto a las otras tablas
-const ORGANOLEPTICA_TABLE = "tblXrhuVVKZZ0pfJB";
 
-// 🧾 Endpoint específico para QR1 Legal
+// Vino legal (QR1)
 app.get('/api/vino-legal/:id', async (req, res) => {
   const vinoId = req.params.id;
 
   try {
-    const vinoResp = await axios.get(https://api.airtable.com/v0/${BASE_ID}/${VINOS_TABLE}, {
-      headers: { Authorization: Bearer ${AIRTABLE_API_KEY} },
-      params: { filterByFormula: {ID Vino} = "${vinoId}" }
+    const vinoResp = await axios.get(`https://api.airtable.com/v0/${BASE_ID}/${VINOS_TABLE}`, {
+      headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` },
+      params: { filterByFormula: `{ID Vino} = '${vinoId}'` }
     });
 
     const vinoRecord = vinoResp.data.records[0];
@@ -157,7 +138,7 @@ app.get('/api/vino-legal/:id', async (req, res) => {
   }
 });
 
-// ✅ ESTE BLOQUE DEBE IR FUERA, así:
+// Radar organoléptico
 app.get('/api/organoleptica/:vinoId', async (req, res) => {
   const vinoId = req.params.vinoId;
 
@@ -192,14 +173,5 @@ app.get('/api/organoleptica/:vinoId', async (req, res) => {
         herbaceo: o.Herbáceo || o.Herbaceo || 0
       }
     });
+  } catch (
 
-  } catch (err) {
-    console.error("❌ Error en /api/organoleptica:", err.message || err);
-    res.status(500).json({ error: "Error al obtener las propiedades organolépticas" });
-  }
-});
-
-
-// 🚀 Iniciar servidor
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(Servidor escuchando en http://localhost:${PORT}));
