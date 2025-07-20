@@ -164,7 +164,10 @@ app.get('/api/organoleptica/:vinoId', async (req, res) => {
   try {
     const organoResp = await axios.get(`https://api.airtable.com/v0/${BASE_ID}/${ORGANOLEPTICA_TABLE}`, {
       headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` },
-      params: { filterByFormula: `{ID Vino} = "${vinoId}"` }
+      params: {
+        // Versión robusta que también funciona con linked records
+        filterByFormula: `SEARCH("${vinoId}", ARRAYJOIN({ID Vino}))`
+      }
     });
 
     const record = organoResp.data.records[0];
@@ -187,7 +190,6 @@ app.get('/api/organoleptica/:vinoId', async (req, res) => {
     res.status(500).json({ error: "Error al obtener las propiedades organolépticas" });
   }
 });
-
 
 // 🚀 Iniciar servidor
 const PORT = process.env.PORT || 3000;
