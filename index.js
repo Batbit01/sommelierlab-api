@@ -153,18 +153,21 @@ app.get('/api/organoleptica/:vinoId', async (req, res) => {
     const o = record.fields;
 
     res.json({
-      Cuerpo: o.Cuerpo || 0,
-      Acidez: o.Acidez || 0,
-      Dulzor: o.Dulzor || 0,
-      Taninos: o.Taninos || 0,
-      Frutal: o.Frutal || 0,
-      Floral: o.Floral || 0,
-      Especiado: o.Especiado || 0,
-      Tostado: o.Tostado || 0,
-      Herbáceo: o.Herbáceo || o.Herbaceo || 0,
-      Frescura: o.Frescura || 0,
-      Mineralidad: o.Mineralidad || 0
-    });
+  cuerpo: o.Cuerpo || 0,
+  acidez: o.Acidez || 0,
+  dulzor: o.Dulzor || 0,
+  taninos: o.Taninos || 0,
+  fruta: o.Fruta || 0,
+  frescura: o.Frescura || 0,
+  mineralidad: o.Mineralidad || 0,
+
+  persistencia: o.Persistencia || 0,
+  complejidad: o.Complejidad || 0,
+  astringencia: o["Astringencia"] || 0,
+  alcohol_percibido: o["Alcohol percibido"] || 0,
+  armonia: o["Armonía"] || 0
+});
+
 
   } catch (err) {
     console.error("❌ Error en /api/organoleptica:", err.response?.data || err.message || err);
