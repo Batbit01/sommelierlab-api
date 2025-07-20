@@ -70,6 +70,8 @@ app.get('/api/vino/:id', async (req, res) => {
 
     const vino = vinoRecord.fields;
     const bodegaId = vino["ID Bodega"];
+    const ORGANOLEPTICA_TABLE = "tblXrhuVVKZZ0pfJB"; // 
+
 
     // ✅ Consultar bodega (por nombre visible del campo)
     const bodegaResp = await axios.get(`https://api.airtable.com/v0/${BASE_ID}/${BODEGAS_TABLE}`, {
@@ -150,8 +152,31 @@ res.json({
   idioma: vino["Idioma legal"] || "es",
   url_qr2: vino["QR2 (Sensitive)"]
 });
+app.get('/api/organoleptica/:vinoId', async (req, res) => {
+  const vinoId = req.params.vinoId;
 
+  try {
+    const organoResp = await axios.get(`https://api.airtable.com/v0/${BASE_ID}/${ORGANOLEPTICA_TABLE}`, {
+      headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` },
+      params: {
+        filterByFormula: `{ID Vino} = "${vinoId}"`
+      }
+    });
 
+    const record = organoResp.data.records[0];
+    if (!record) return res.status(404).json({ error: "Propiedades organolépticas no encontradas" });
+
+    const o = record.fields;
+
+    res.json({
+      cuerpo: o.Cuerpo || 0,
+      acidez: o.Acidez || 0,
+      dulzor: o.Dulzor || 0,
+      taninos: o.Taninos || 0,
+      fruta: o.Fruta || 0,
+      frescura: o.Frescura || 0,
+      mineralidad: o.Mineralidad || 0
+    });
 
   } catch (err) {
     console.error("❌ Error en /api/vino-legal:", err.message || err);
