@@ -95,4 +95,89 @@ app.get('/api/vino/:id', async (req, res) => {
 });
 
 // Vino Legal
-app.get('/api/vino-legal/:id', async (
+app.get('/api/vino-legal/:id', async (req, res) => {
+  const vinoId = req.params.id;
+
+  try {
+    const vinoResp = await axios.get(`https://api.airtable.com/v0/${BASE_ID}/${VINOS_TABLE}`, {
+      headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` },
+      params: { filterByFormula: `{ID Vino} = '${vinoId}'` }
+    });
+
+    const vinoRecord = vinoResp.data.records[0];
+    if (!vinoRecord) return res.status(404).json({ error: "Vino no encontrado" });
+
+    const vino = vinoRecord.fields;
+
+    res.json({
+      id: vino["ID Vino"],
+      nombre: vino["Nombre del vino"],
+      Imagen: vino["Imagen"],
+      ingredientes: vino["Ingredientes"],
+      valor_energetico_kcal: vino["Valor energético (kcal/100ml)"],
+      valor_energetico_kj: vino["Valor energético (kJ/100ml)"],
+      grasas_totales: vino["Grasas totales (g)"],
+      grasas_saturadas: vino["Grasas saturadas (g)"],
+      hidratos: vino["Hidratos de carbono (g)"],
+      azucares: vino["Azúcares (g)"],
+      proteinas: vino["Proteínas (g)"],
+      sal: vino["Sal (g)"],
+      graduacion_alcoholica: vino["Graduación alcohólica"],
+      volumen_ml: vino["Volumen de botella"],
+      alergenos: vino["Alérgenos"],
+      idioma: vino["Idioma legal"] || "es",
+      url_qr2: vino["QR2 (Sensitive)"]
+    });
+
+  } catch (err) {
+    console.error("❌ Error en /api/vino-legal:", err.response?.data || err.message || err);
+    res.status(500).json({ error: "Error al obtener los datos legales del vino" });
+  }
+});
+
+// Organoléptica
+app.get('/api/organoleptica/:vinoId', async (req, res) => {
+  const vinoId = req.params.vinoId;
+
+  try {
+    const organoResp = await axios.get(`https://api.airtable.com/v0/${BASE_ID}/${ORGANOLEPTICA_TABLE}`, {
+      headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` },
+      params: {
+        filterByFormula: `{ID Vino} = '${vinoId}'`
+      }
+    });
+
+    const record = organoResp.data.records[0];
+    if (!record) return res.status(404).json({ error: "Propiedades organolépticas no encontradas" });
+
+    const o = record.fields;
+
+    res.json({
+      Cuerpo: o.Cuerpo || 0,
+      Acidez: o.Acidez || 0,
+      Dulzor: o.Dulzor || 0,
+      Taninos: o.Taninos || 0,
+      Frutal: o.Frutal || 0,
+      Floral: o.Floral || 0,
+      Especiado: o.Especiado || 0,
+      Tostado: o.Tostado || 0,
+      Herbáceo: o.Herbáceo || o.Herbaceo || 0,
+      Frescura: o.Frescura || 0,
+      Mineralidad: o.Mineralidad || 0
+    });
+
+  } catch (err) {
+    console.error("❌ Error en /api/organoleptica:", err.response?.data || err.message || err);
+    res.status(500).json({ error: "Error al obtener las propiedades organolépticas" });
+  }
+});
+
+// Seguridad extra (middleware de errores no capturados)
+app.use((err, req, res, next) => {
+  console.error("🔥 Error no capturado:", err.stack);
+  res.status(500).send("Error interno inesperado.");
+});
+
+// Iniciar servidor
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Servidor escuchando en http://localhost:${PORT}`));
