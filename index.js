@@ -52,6 +52,9 @@
     #radar-container {
       margin-top: 3rem;
     }
+    .switch-buttons {
+      margin-bottom: 1rem;
+    }
     .switch-buttons button {
       margin-right: 1rem;
       padding: 0.5rem 1rem;
@@ -62,8 +65,11 @@
     }
   </style>
 </head>
+
 <body>
+
   <h1>Ficha del Vino</h1>
+
   <div class="vino-ficha">
     <img id="vinoImagen" src="" alt="Imagen del vino" />
     <div class="vino-dato"><strong>Nombre:</strong> <span id="vinoNombre">-</span></div>
@@ -73,8 +79,11 @@
     <div class="vino-dato"><strong>Bodega:</strong> <span id="bodegaNombre">-</span></div>
     <div class="vino-dato redes" id="bodega-redes"></div>
   </div>
+
   <div id="respuesta">Cargando descripción del vino...</div>
+
   <button id="hablar">Hablar con el sommelier</button>
+
   <div id="radar-container">
     <h3>Perfil organoléptico</h3>
     <div class="switch-buttons">
@@ -83,136 +92,97 @@
     </div>
     <canvas id="radarChart" width="400" height="400"></canvas>
   </div>
-<script>
-let radarChart;
-let organo = {};
 
-function renderRadar(tipo) {
-  if (!organo || Object.keys(organo).length === 0) {
-    console.warn("Datos organolépticos no cargados todavía.");
-    return;
-  }
+  <script>
+    let radarChart;
+    let organo = {};
 
-  const ctx = document.getElementById('radarChart').getContext('2d');
-  let labels, data;
+    function renderRadar(tipo) {
+      if (!organo || Object.keys(organo).length === 0) {
+        console.warn("⚠️ Datos organolépticos no disponibles.");
+        return;
+      }
 
-  if (tipo === 'gustativo') {
-    labels = ["Cuerpo", "Acidez", "Dulzor", "Taninos", "Frescura", "Mineralidad"];
-    data = [
-      organo["Cuerpo"] || 0,
-      organo["Acidez"] || 0,
-      organo["Dulzor"] || 0,
-      organo["Taninos"] || 0,
-      organo["Frescura"] || 0,
-      organo["Mineralidad"] || 0
-    ];
-  } else {
-    labels = ["Frutal", "Floral", "Especiado", "Tostado", "Herbáceo"];
-    data = [
-      organo["Frutal"] || 0,
-      organo["Floral"] || 0,
-      organo["Especiado"] || 0,
-      organo["Tostado"] || 0,
-      organo["Herbáceo"] || 0
-    ];
-  }
+      const ctx = document.getElementById('radarChart').getContext('2d');
+      let labels = [];
+      let data = [];
 
-  if (radarChart) radarChart.destroy();
+      if (tipo === 'gustativo') {
+        labels = ["Cuerpo", "Acidez", "Dulzor", "Taninos", "Frescura", "Mineralidad"];
+        data = [
+          organo["Cuerpo"] || 0,
+          organo["Acidez"] || 0,
+          organo["Dulzor"] || 0,
+          organo["Taninos"] || 0,
+          organo["Frescura"] || 0,
+          organo["Mineralidad"] || 0
+        ];
+      } else {
+        labels = ["Frutal", "Floral", "Especiado", "Tostado", "Herbáceo"];
+        data = [
+          organo["Frutal"] || 0,
+          organo["Floral"] || 0,
+          organo["Especiado"] || 0,
+          organo["Tostado"] || 0,
+          organo["Herbáceo"] || 0
+        ];
+      }
 
-  radarChart = new Chart(ctx, {
-    type: 'radar',
-    data: {
-      labels,
-      datasets: [{
-        label: `Perfil ${tipo}`,
-        data,
-        fill: true,
-        backgroundColor: "rgba(128,0,0,0.2)",
-        borderColor: "rgba(128,0,0,1)",
-        pointBackgroundColor: "rgba(128,0,0,1)"
-      }]
-    },
-    options: {
-      responsive: true,
-      scales: {
-        r: {
-          min: 0,
-          max: 10,
-          ticks: {
-            stepSize: 2
+      if (radarChart) radarChart.destroy();
+
+      radarChart = new Chart(ctx, {
+        type: 'radar',
+        data: {
+          labels,
+          datasets: [{
+            label: `Perfil ${tipo}`,
+            data,
+            fill: true,
+            backgroundColor: "rgba(128,0,0,0.2)",
+            borderColor: "rgba(128,0,0,1)",
+            pointBackgroundColor: "rgba(128,0,0,1)"
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            r: {
+              min: 0,
+              max: 10,
+              ticks: {
+                stepSize: 2
+              }
+            }
           }
         }
-      }
-    }
-  });
-}
-
-document.addEventListener("DOMContentLoaded", async () => {
-  const urlParams = new URLSearchParams(window.location.search);
-  const vinoId = urlParams.get("vino_id");
-
-  if (!vinoId) {
-    document.getElementById("respuesta").innerText = "No se especificó ningún vino.";
-    return;
-  }
-
-  const apiBase = "https://sommelierlab-api-production.up.railway.app/api/vino";
-  const organoBase = "https://sommelierlab-api-production.up.railway.app/api/organoleptica";
-  const webhookBase = "https://n8n-production-cb18.up.railway.app/webhook/consultar-vino";
-
-  try {
-    const fichaResponse = await fetch(`${apiBase}/${vinoId}`);
-    const fichaData = await fichaResponse.json();
-
-    document.getElementById("vinoImagen").src = (fichaData.imagen && Array.isArray(fichaData.imagen) && fichaData.imagen[0]?.url) ? fichaData.imagen[0].url : "";
-    document.getElementById("vinoNombre").innerText = fichaData.nombre;
-    document.getElementById("vinoTipo").innerText = fichaData.tipo;
-    document.getElementById("vinoUva").innerText = fichaData.variedad;
-    document.getElementById("vinoOrigen").innerText = fichaData.origen;
-    document.getElementById("bodegaNombre").innerText = fichaData.bodega.nombre;
-
-    const redesHtml = [];
-    if (fichaData.bodega.web) redesHtml.push(`<a href="${fichaData.bodega.web}" target="_blank">🌐 Web</a>`);
-    if (fichaData.bodega.facebook) redesHtml.push(`<a href="${fichaData.bodega.facebook}" target="_blank">📘 Facebook</a>`);
-    if (fichaData.bodega.instagram) redesHtml.push(`<a href="${fichaData.bodega.instagram}" target="_blank">📸 Instagram</a>`);
-    if (fichaData.bodega.twitter) redesHtml.push(`<a href="${fichaData.bodega.twitter}" target="_blank">🐦 Twitter</a>`);
-    document.getElementById("bodega-redes").innerHTML = redesHtml.join(" · ");
-  } catch (error) {
-    console.error("❌ Error cargando ficha del vino:", error);
-    document.getElementById("respuesta").innerText = "No se pudo cargar la ficha del vino.";
-  }
-
-  try {
-    const narrativaRes = await fetch(`${webhookBase}?vino_id=${vinoId}`);
-    const narrativaData = await narrativaRes.json();
-    document.getElementById("respuesta").innerText = narrativaData.narrativa || "Narrativa no disponible.";
-  } catch (error) {
-    console.error("❌ Error cargando narrativa:", error);
-  }
-
-  try {
-    const organoRes = await fetch(`${organoBase}/${vinoId}`);
-    organo = await organoRes.json();
-    console.log("✅ Datos organolépticos:", organo);
-    renderRadar("gustativo");
-  } catch (error) {
-    console.error("❌ Error cargando gráfico organoléptico:", error);
-  }
-
-  document.getElementById("hablar").addEventListener("click", async () => {
-    try {
-      await fetch(`${webhookBase}?vino_id=${vinoId}&accion=retell`);
-      RetellWebSDK.init({
-        agentId: "agent_dd24626bd6f65f2453277829bb",
-        callType: "web",
-        context: { vino_id: vinoId },
-        start: true
       });
-    } catch (e) {
-      console.error("❌ Error iniciando Retell:", e);
     }
-  });
-});
-</script>
-</body>
-</html>
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const vinoId = urlParams.get("vino_id");
+
+      if (!vinoId) {
+        document.getElementById("respuesta").innerText = "No se especificó ningún vino.";
+        return;
+      }
+
+      const apiBase = "https://sommelierlab-api-production.up.railway.app/api/vino";
+      const organoBase = "https://sommelierlab-api-production.up.railway.app/api/organoleptica";
+      const webhookBase = "https://n8n-production-cb18.up.railway.app/webhook/consultar-vino";
+
+      try {
+        const fichaResponse = await fetch(`${apiBase}/${vinoId}`);
+        const fichaData = await fichaResponse.json();
+
+        document.getElementById("vinoImagen").src =
+          (fichaData.imagen && Array.isArray(fichaData.imagen) && fichaData.imagen[0]?.url)
+          ? fichaData.imagen[0].url : "";
+        document.getElementById("vinoNombre").innerText = fichaData.nombre;
+        document.getElementById("vinoTipo").innerText = fichaData.tipo;
+        document.getElementById("vinoUva").innerText = fichaData.variedad;
+        document.getElementById("vinoOrigen").innerText = fichaData.origen;
+        document.getElementById("bodegaNombre").innerText = fichaData.bodega.nombre;
+
+        const redesHtml = [];
+        if (fichaData.bodega
