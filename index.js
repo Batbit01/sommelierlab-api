@@ -114,17 +114,17 @@ app.get('/api/vino/:id', async (req, res) => {
     }
   }
 });
+// ✅ CORRECTO: Defínelo arriba junto a las otras tablas
+const ORGANOLEPTICA_TABLE = "tblXrhuVVKZZ0pfJB";
+
 // 🧾 Endpoint específico para QR1 Legal
 app.get('/api/vino-legal/:id', async (req, res) => {
   const vinoId = req.params.id;
 
   try {
-    // Buscar el vino por ID
     const vinoResp = await axios.get(`https://api.airtable.com/v0/${BASE_ID}/${VINOS_TABLE}`, {
       headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` },
-      params: {
-        filterByFormula: `{ID Vino} = "${vinoId}"`
-      }
+      params: { filterByFormula: `{ID Vino} = "${vinoId}"` }
     });
 
     const vinoRecord = vinoResp.data.records[0];
@@ -132,35 +132,39 @@ app.get('/api/vino-legal/:id', async (req, res) => {
 
     const vino = vinoRecord.fields;
 
-// ✅ Solo los campos legales
-res.json({
-  id: vino["ID Vino"],
-  nombre: vino["Nombre del vino"],
-  Imagen: vino["Imagen"],
-  ingredientes: vino["Ingredientes"],
-  valor_energetico_kcal: vino["Valor energético (kcal/100ml)"],
-  valor_energetico_kj: vino["Valor energético (kJ/100ml)"],
-  grasas_totales: vino["Grasas totales (g)"],
-  grasas_saturadas: vino["Grasas saturadas (g)"],
-  hidratos: vino["Hidratos de carbono (g)"],
-  azucares: vino["Azúcares (g)"],
-  proteinas: vino["Proteínas (g)"],
-  sal: vino["Sal (g)"],
-  graduacion_alcoholica: vino["Graduación alcohólica"],
-  volumen_ml: vino["Volumen de botella"], // ✅ CORREGIDO A ESTE CAMPO
-  alergenos: vino["Alérgenos"],
-  idioma: vino["Idioma legal"] || "es",
-  url_qr2: vino["QR2 (Sensitive)"]
+    res.json({
+      id: vino["ID Vino"],
+      nombre: vino["Nombre del vino"],
+      Imagen: vino["Imagen"],
+      ingredientes: vino["Ingredientes"],
+      valor_energetico_kcal: vino["Valor energético (kcal/100ml)"],
+      valor_energetico_kj: vino["Valor energético (kJ/100ml)"],
+      grasas_totales: vino["Grasas totales (g)"],
+      grasas_saturadas: vino["Grasas saturadas (g)"],
+      hidratos: vino["Hidratos de carbono (g)"],
+      azucares: vino["Azúcares (g)"],
+      proteinas: vino["Proteínas (g)"],
+      sal: vino["Sal (g)"],
+      graduacion_alcoholica: vino["Graduación alcohólica"],
+      volumen_ml: vino["Volumen de botella"],
+      alergenos: vino["Alérgenos"],
+      idioma: vino["Idioma legal"] || "es",
+      url_qr2: vino["QR2 (Sensitive)"]
+    });
+  } catch (err) {
+    console.error("❌ Error en /api/vino-legal:", err.message || err);
+    res.status(500).json({ error: "Error al obtener los datos legales del vino" });
+  }
 });
+
+// ✅ ESTE BLOQUE DEBE IR FUERA, así:
 app.get('/api/organoleptica/:vinoId', async (req, res) => {
   const vinoId = req.params.vinoId;
 
   try {
     const organoResp = await axios.get(`https://api.airtable.com/v0/${BASE_ID}/${ORGANOLEPTICA_TABLE}`, {
       headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` },
-      params: {
-        filterByFormula: `{ID Vino} = "${vinoId}"`
-      }
+      params: { filterByFormula: `{ID Vino} = "${vinoId}"` }
     });
 
     const record = organoResp.data.records[0];
@@ -179,10 +183,11 @@ app.get('/api/organoleptica/:vinoId', async (req, res) => {
     });
 
   } catch (err) {
-    console.error("❌ Error en /api/vino-legal:", err.message || err);
-    res.status(500).json({ error: "Error al obtener los datos legales del vino" });
+    console.error("❌ Error en /api/organoleptica:", err.message || err);
+    res.status(500).json({ error: "Error al obtener las propiedades organolépticas" });
   }
 });
+
 
 // 🚀 Iniciar servidor
 const PORT = process.env.PORT || 3000;
