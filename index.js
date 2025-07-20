@@ -31,8 +31,8 @@ app.get('/api/debug', (req, res) => {
 // 🧪 NUEVO: Test directo a la tabla de vinos sin filtro
 app.get('/api/test-vinos', async (req, res) => {
   try {
-    const vinosResp = await axios.get(`https://api.airtable.com/v0/${BASE_ID}/${VINOS_TABLE}`, {
-      headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` },
+    const vinosResp = await axios.get(https://api.airtable.com/v0/${BASE_ID}/${VINOS_TABLE}, {
+      headers: { Authorization: Bearer ${AIRTABLE_API_KEY} },
       params: { maxRecords: 5 }
     });
 
@@ -58,10 +58,10 @@ app.get('/api/vino/:id', async (req, res) => {
 
   try {
     // ✅ Consultar vino por campo visible: "ID Vino"
-    const vinoResp = await axios.get(`https://api.airtable.com/v0/${BASE_ID}/${VINOS_TABLE}`, {
-      headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` },
+    const vinoResp = await axios.get(https://api.airtable.com/v0/${BASE_ID}/${VINOS_TABLE}, {
+      headers: { Authorization: Bearer ${AIRTABLE_API_KEY} },
       params: {
-        filterByFormula: `{ID Vino} = "${vinoId}"`
+        filterByFormula: {ID Vino} = "${vinoId}"
       }
     });
 
@@ -74,10 +74,10 @@ app.get('/api/vino/:id', async (req, res) => {
 
 
     // ✅ Consultar bodega (por nombre visible del campo)
-    const bodegaResp = await axios.get(`https://api.airtable.com/v0/${BASE_ID}/${BODEGAS_TABLE}`, {
-      headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` },
+    const bodegaResp = await axios.get(https://api.airtable.com/v0/${BASE_ID}/${BODEGAS_TABLE}, {
+      headers: { Authorization: Bearer ${AIRTABLE_API_KEY} },
       params: {
-        filterByFormula: `{ID Bodega} = "${bodegaId}"`
+        filterByFormula: {ID Bodega} = "${bodegaId}"
       }
     });
 
@@ -122,9 +122,9 @@ app.get('/api/vino-legal/:id', async (req, res) => {
   const vinoId = req.params.id;
 
   try {
-    const vinoResp = await axios.get(`https://api.airtable.com/v0/${BASE_ID}/${VINOS_TABLE}`, {
-      headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` },
-      params: { filterByFormula: `{ID Vino} = "${vinoId}"` }
+    const vinoResp = await axios.get(https://api.airtable.com/v0/${BASE_ID}/${VINOS_TABLE}, {
+      headers: { Authorization: Bearer ${AIRTABLE_API_KEY} },
+      params: { filterByFormula: {ID Vino} = "${vinoId}" }
     });
 
     const vinoRecord = vinoResp.data.records[0];
@@ -162,9 +162,12 @@ app.get('/api/organoleptica/:vinoId', async (req, res) => {
   const vinoId = req.params.vinoId;
 
   try {
-    const organoResp = await axios.get(`https://api.airtable.com/v0/${BASE_ID}/${ORGANOLEPTICA_TABLE}`, {
-      headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` },
-      params: { filterByFormula: `{ID Vino} = "${vinoId}"` }
+    const organoResp = await axios.get(https://api.airtable.com/v0/${BASE_ID}/${ORGANOLEPTICA_TABLE}, {
+      headers: { Authorization: Bearer ${AIRTABLE_API_KEY} },
+      params: {
+        // Versión robusta que también funciona con linked records
+        filterByFormula: SEARCH("${vinoId}", ARRAYJOIN({ID Vino}))
+      }
     });
 
     const record = organoResp.data.records[0];
@@ -188,8 +191,6 @@ app.get('/api/organoleptica/:vinoId', async (req, res) => {
   }
 });
 
-
 // 🚀 Iniciar servidor
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Servidor escuchando en http://localhost:${PORT}`));
-
+app.listen(PORT, () => console.log(Servidor escuchando en http://localhost:${PORT}));
