@@ -160,6 +160,11 @@ app.get('/api/organoleptica/:vinoId', async (req, res) => {
   fruta: o.Fruta || 0,
   frescura: o.Frescura || 0,
   mineralidad: o.Mineralidad || 0,
+      
+      floral: o.Floral || 0,
+especiado: o.Especiado || 0,
+tostado: o.Tostado || 0,
+herbaceo: o.Herbaceo || 0,
 
   persistencia: o.Persistencia || 0,
   complejidad: o.Complejidad || 0,
